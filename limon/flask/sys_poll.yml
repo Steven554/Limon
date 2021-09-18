@@ -1,0 +1,18 @@
+log_dir: "logs"          # directory name to write logs to
+poll_every: 10           # how often (seconds) to poll system information
+keep_existing: False      # should we keep existing database?
+db_name: "poll"          # database to write recently polled data
+db_table_name: "metrics" # table to write recently polled data
+db_username: "root"      # database user name
+db_password: "root"      # database password
+db_host: "mysql"         # hostname for the database
+db_port:  3306           # port for the database (3306 is default)
+delete_interval: 60      # how often to remove records (seconds)
+###
+# note: to add more metrics go to https://psutil.readthedocs.io/en/latest/
+# find methods on Process object and add to `metrics` list below
+###
+metrics: ["memory_percent",
+          "cpu_percent",
+          "num_threads",
+          "name"]

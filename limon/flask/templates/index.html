@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='dist/chartist.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='dist/bootstrap.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='dist/b-t.css') }}">
+  <title>Limon</title>
+
+</head>
+<body>
+  <!-- <meta http-equiv="refresh" content="{{refresh_interval}}"; URL="index.html"/> -->
+  <script src="{{ url_for('static',filename='dist/chartist.js') }}"></script>
+  <script src="{{ url_for('static',filename='dist/bootstrap.js') }}"></script>
+  <script src="{{ url_for('static',filename='dist/jquery.js') }}"></script>
+  <script src="{{ url_for('static',filename='dist/b-t.js') }}"></script>
+  <div class="text-center container">
+    <h1>Limón</h1>
+    <input type="checkbox" onclick="toggleAutoRefresh(this);" id="reloadCB"> Auto Refresh</input>
+    <div class="ct-chart" id="chart1"></div>
+    <p><i>CPU/RAM Utilization</i></p>
+    <div class="ct-chart" id="chart2"></div>
+    <p><i>Load Average</i></p>
+  </div>
+
+  <script type="text/javascript">
+  var reloading;
+
+  function checkReloading() {
+    if (window.location.hash=="#autorefresh") {
+      reloading=setTimeout("window.location.reload();", {{refresh_interval}}*1000);
+      document.getElementById("reloadCB").checked=true;
+    }
+  }
+
+  function toggleAutoRefresh(cb) {
+    if (cb.checked) {
+      window.location.replace("#autorefresh");
+      reloading=setTimeout("window.location.reload();", {{refresh_interval}}*1000);
+    } else {
+      window.location.replace("#");
+      clearTimeout(reloading);
+    }
+  }
+  window.onload=checkReloading;
+
+  //CPU and RAM chart
+  new Chartist.Bar('#chart1', {
+    labels: ['CPU 0: {{cpunow[0]}}%', 'CPU 1: {{cpunow[1]}}%', 'CPU 2: {{cpunow[2]}}%','CPU 3: {{cpunow[3]}}%', 'RAM: {{ramnow}}%'],
+    series: [
+      [ {{cpunow[0]}}, {{cpunow[1]}}, {{cpunow[2]}}, {{cpunow[3]}}, {{ramnow}} ]
+    ]
+  }, {
+    stackBars: false,
+    axisY: {
+      labelInterpolationFnc: function(value) {
+        return (value) + '%';
+      }
+    }
+  }).on('draw', function(data) {
+    if(data.type === 'bar') {
+      data.element.attr({
+        style: 'stroke-width: 30px'
+      });
+    }
+  });
+
+  //Average load line chart
+  new Chartist.Line('#chart2', {
+    labels: ['15 min: {{cpuavg[2]}}', '5 min: {{cpuavg[1]}}', '1 min: {{cpuavg[0]}}'],
+    series: [
+      [ {{cpuavg[2]}}, {{cpuavg[1]}}, {{cpuavg[0]}} ]
+    ]
+  }, {
+    fullWidth: false,
+    chartPadding: {
+      left: 10,
+      right: 10
+    }
+  });
+</script>
+
+<div class="container">
+  <div class="table-responsive">
+    <table
+    id="process_table"
+    data-toggle="table"
+    data-search="true"
+    data-sort-name="cpu_percent"
+    data-sort-order="desc">
+    <thead>
+      <tr>
+        <th data-field="name" data-sortable="true">Name</th>
+        <th data-field="pid" data-sortable="true">PID</th>
+        <th data-field="cpu_percent" data-sortable="true">CPU %</th>
+        <th data-field="memory_percent" data-sortable="true">Memory %</th>
+        <th data-field="num_threads" data-sortable="true">Threads</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for process in data %}
+      <tr>
+        <td><i>{{ process.name }}</i></td>
+        <td>{{ process.pid }}</td>
+        <td>{{ process.cpu_percent }}%</td>
+        <td>{{ process.memory_percent }}%</td>
+        <td>{{ process.num_threads }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+</div>
+
+</body>
+</html>
